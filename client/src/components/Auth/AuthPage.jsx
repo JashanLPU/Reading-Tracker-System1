@@ -24,7 +24,7 @@ const AuthPage = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/register', {
+            const res = await axios.post('/api/registe', {
                 name, email, password
             });
 
@@ -44,7 +44,7 @@ const AuthPage = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/login', {
+            const res = await axios.post('/api/login', {
                 email, password
             });
 
