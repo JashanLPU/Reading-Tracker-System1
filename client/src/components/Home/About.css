@@ -1,0 +1,255 @@
+/* client/src/components/Home/About.css */
+
+/* --- 1. GLOBAL RESET (Crucial for Centering) --- */
+html, body, #root {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden; /* Prevents horizontal scrollbar shifting */
+}
+
+/* --- 2. PAGE WRAPPER --- */
+.about-page-wrapper {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+    color: #fff;
+    font-family: 'Lato', sans-serif;
+    
+    /* THE CENTERING ENGINE */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Forces all sections to the absolute middle */
+}
+
+/* --- 3. BACKGROUND VIDEO --- */
+.bg-video-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%; /* Matches content width */
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+}
+
+.video-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: -1;
+}
+
+/* --- 4. SECTIONS (Strict Center) --- */
+.about-section {
+    width: 100%;
+    max-width: 1400px; /* Prevents content from getting too wide on huge screens */
+    margin: 0 auto; /* Backup centering */
+    
+    min-height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 20px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* FADE IN ANIMATION */
+.fade-in {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+}
+.fade-in-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* --- 5. HERO SECTION --- */
+.hero-section {
+    min-height: 100vh;
+    padding-top: 100px; /* Space for Navbar */
+}
+
+/* HERO CONTENT (Strict Center) */
+.hero-content {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto; /* Forces middle alignment */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.cinematic-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    margin: 0;
+    background: linear-gradient(to bottom, #FFD700, #E0AA3E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    text-align: center;
+}
+
+.gold-separator {
+    width: 80px;
+    height: 3px;
+    background: #FFD700;
+    margin: 30px auto; 
+    box-shadow: 0 0 15px #FFD700;
+}
+
+.cinematic-subtitle {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.5rem;
+    color: #e0e0e0;
+    font-style: italic;
+    margin-bottom: 50px;
+    text-align: center;
+}
+
+/* --- 6. GLASS CARDS --- */
+.glass-card {
+    background: rgba(15, 10, 5, 0.75);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 20px;
+    padding: 60px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    
+    /* ALIGNMENT FIXES */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.medium-width { width: 90%; max-width: 800px; }
+.full-width { width: 90%; max-width: 1100px; }
+
+.section-heading {
+    font-family: 'Cinzel', serif;
+    color: #FFD700;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.section-text-large {
+    font-family: 'Crimson Text', serif;
+    font-size: 1.4rem;
+    color: #ccc;
+    font-style: italic;
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.text-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    text-align: left;
+    line-height: 1.8;
+    color: #bbb;
+    width: 100%;
+}
+
+/* --- 7. FEATURES GRID --- */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 40px;
+    margin-top: 40px;
+    width: 100%;
+    /* Ensure grid items align in center if they wrap */
+    justify-content: center; 
+}
+
+.feature-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 30px;
+    border-radius: 12px;
+    transition: 0.3s;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.feature-item:hover {
+    background: rgba(255, 215, 0, 0.05);
+    border-color: rgba(255, 215, 0, 0.3);
+    transform: translateY(-5px);
+}
+
+.feature-icon { font-size: 2.5rem; display: block; margin-bottom: 15px; color: #FFD700; }
+.feature-item h3 { color: #fff; margin-bottom: 10px; font-family: 'Cinzel', serif; }
+.feature-item p { color: #999; font-size: 0.9rem; line-height: 1.6; text-align: center; }
+
+/* --- 8. BUTTONS --- */
+.btn-primary-gold {
+    padding: 18px 50px;
+    background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+    color: #1a0f0a;
+    border: none;
+    font-family: 'Cinzel', serif;
+    font-weight: 800;
+    font-size: 1rem;
+    border-radius: 50px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 10px 30px rgba(255, 160, 0, 0.3);
+    transition: 0.3s;
+    margin: 0 auto;
+    display: block;
+}
+.btn-primary-gold:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(255, 160, 0, 0.5);
+}
+
+.btn-text-only {
+    background: none;
+    border: none;
+    color: #FFD700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-top: 20px;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    border-bottom: 1px solid transparent;
+    transition: 0.3s;
+    margin: 20px auto 0;
+}
+.btn-text-only:hover {
+    border-bottom: 1px solid #FFD700;
+    letter-spacing: 2px;
+}
+
+/* --- 9. STATS --- */
+.stats-container {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    justify-content: center; /* STRICT CENTER */
+    margin-bottom: 60px;
+    width: 100%;
+}
+.stat-box { text-align: center; }
+.stat-box h1 { font-family: 'Cinzel', serif; font-size: 3rem; color: #FFD700; margin: 0; }
+.stat-box span { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; color: #888; }
+.stat-line { width: 1px; height: 50px; background: rgba(255,255,255,0.2); }
+.footer-cta { text-align: center; width: 100%; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .text-grid { grid-template-columns: 1fr; }
+    .stats-container { flex-direction: column; gap: 20px; }
+    .stat-line { width: 50px; height: 1px; }
+    .cinematic-title { font-size: 3.5rem; }
+}

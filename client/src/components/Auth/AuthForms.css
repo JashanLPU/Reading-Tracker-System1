@@ -1,0 +1,250 @@
+/* src/components/Auth/AuthForms.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&family=Lato:wght@400;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+:root {
+    /* COZY LIBRARY PALETTE */
+    --wood-dark: #3E2723;
+    --wood-light: #5D4037;
+    --amber-glow: #FFB74D;
+    --parchment: #FFF8E1;
+    --text-dark: #3E2723;
+}
+
+/* 1. PAGE SETUP */
+.auth-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Lato', sans-serif;
+}
+
+/* 2. VIDEO STYLES */
+.bg-video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: -3;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(40, 20, 10, 0.4); /* Warm dark tint */
+    z-index: -2;
+}
+
+/* --- 3. THE GOLDEN FIREFLIES (Bubbles) --- */
+.fireflies {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    overflow: hidden;
+    margin: 0; padding: 0;
+    z-index: -1;
+}
+
+.fireflies li {
+    position: absolute;
+    display: block;
+    list-style: none;
+    width: 10px; height: 10px;
+    background: rgba(255, 183, 77, 0.6); /* Golden Bubbles */
+    animation: animate 25s linear infinite;
+    bottom: -150px;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(255, 183, 77, 0.8);
+}
+
+.fireflies li:nth-child(1) { left: 25%; width: 15px; height: 15px; animation-duration: 15s; }
+.fireflies li:nth-child(2) { left: 10%; width: 10px; height: 10px; animation-duration: 12s; animation-delay: 2s; }
+.fireflies li:nth-child(3) { left: 70%; width: 12px; height: 12px; animation-duration: 18s; animation-delay: 4s; }
+.fireflies li:nth-child(4) { left: 40%; width: 18px; height: 18px; animation-duration: 20s; }
+.fireflies li:nth-child(5) { left: 65%; width: 10px; height: 10px; animation-duration: 14s; }
+.fireflies li:nth-child(6) { left: 75%; width: 20px; height: 20px; animation-duration: 25s; animation-delay: 3s; }
+.fireflies li:nth-child(7) { left: 35%; width: 15px; height: 15px; animation-duration: 16s; animation-delay: 7s; }
+.fireflies li:nth-child(8) { left: 50%; width: 10px; height: 10px; animation-duration: 35s; animation-delay: 15s; }
+.fireflies li:nth-child(9) { left: 20%; width: 15px; height: 15px; animation-duration: 11s; animation-delay: 2s; }
+.fireflies li:nth-child(10){ left: 85%; width: 25px; height: 25px; animation-duration: 22s; }
+
+@keyframes animate {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 0.8; }
+    100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
+}
+
+/* --- 4. MAIN CARD (More Transparent Now) --- */
+.container {
+    /* CHANGED: Opacity lowered to 0.55 for better transparency */
+    background: rgba(62, 39, 35, 0.55); 
+    
+    backdrop-filter: blur(8px); /* Blur keeps text readable */
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+    width: 850px;
+    max-width: 100%;
+    min-height: 550px;
+    border: 1px solid rgba(255, 183, 77, 0.4);
+    z-index: 1;
+    
+    /* Cinematic Entrance */
+    animation: zoomIn 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes zoomIn {
+    0% { transform: scale(0.8) translateY(50px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* 5. TYPOGRAPHY */
+h1 {
+    font-family: 'Crimson Text', serif; font-weight: 700; margin: 0 0 15px 0;
+    color: var(--amber-glow); text-shadow: 0 2px 4px rgba(0,0,0,0.8); font-size: 2.2rem;
+}
+p {
+    font-size: 15px; font-weight: 400; margin: 10px 0 25px; color: var(--parchment);
+    font-family: 'Crimson Text', serif; font-style: italic; text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* 6. INPUTS (More Transparent) */
+input {
+    background-color: rgba(255, 248, 225, 0.8); /* Slightly transparent paper */
+    border: none; border-bottom: 2px solid var(--wood-light);
+    padding: 12px 15px; margin: 8px 0; width: 100%; color: var(--text-dark);
+    outline: none; font-family: 'Lato', sans-serif; font-weight: bold;
+    border-radius: 5px 5px 0 0; transition: all 0.3s ease;
+}
+input:focus {
+    background-color: #fff; border-bottom: 2px solid var(--amber-glow);
+    box-shadow: 0 10px 20px -10px rgba(255, 183, 77, 0.5);
+}
+
+/* 7. BUTTONS */
+button {
+    position: relative; border-radius: 25px; border: 1px solid var(--amber-glow);
+    background-color: var(--amber-glow); color: var(--wood-dark);
+    font-size: 13px; font-weight: bold; padding: 12px 45px; letter-spacing: 1px;
+    text-transform: uppercase; cursor: pointer; margin-top: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2); overflow: hidden; z-index: 1; transition: all 0.3s ease;
+}
+button::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    transition: 0.5s; z-index: -1;
+}
+button:hover::after { left: 100%; }
+button:hover {
+    background-color: #FFCA28; box-shadow: 0 0 20px rgba(255, 183, 77, 0.8); transform: translateY(-2px);
+}
+
+/* 8. SLIDING PANEL (Also Transparent) */
+.overlay-container {
+    position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
+    overflow: hidden; transition: transform 0.6s ease-in-out; z-index: 100;
+}
+.container.right-panel-active .overlay-container { transform: translateX(-100%); }
+
+.overlay {
+    /* Gradient with Transparency so you can see video through it too */
+    background: linear-gradient(to right, rgba(62, 39, 35, 0.9), rgba(93, 64, 55, 0.9));
+    color: #FFFFFF; position: relative; left: -100%; height: 100%; width: 200%;
+    transform: translateX(0); transition: transform 0.6s ease-in-out;
+}
+.container.right-panel-active .overlay { transform: translateX(50%); }
+
+.overlay-panel {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; padding: 0 30px; text-align: center; top: 0;
+    height: 100%; width: 50%; transform: translateX(0); transition: transform 0.6s ease-in-out;
+}
+.overlay-left { transform: translateX(-20%); } .container.right-panel-active .overlay-left { transform: translateX(0); }
+.overlay-right { right: 0; transform: translateX(0); } .container.right-panel-active .overlay-right { transform: translateX(20%); }
+
+button.ghost {
+    background-color: transparent; border-color: var(--parchment); color: var(--parchment); box-shadow: none;
+}
+button.ghost:hover { background-color: var(--parchment); color: var(--wood-dark); }
+
+/* UTILITIES */
+.form-container { position: absolute; top: 0; height: 100%; transition: all 0.6s ease-in-out; }
+form { background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 0 40px; text-align: center; }
+.sign-in-container { left: 0; width: 50%; z-index: 2; opacity: 1; }
+.container.right-panel-active .sign-in-container { transform: translateX(100%); opacity: 0; z-index: 0; pointer-events: none; }
+.sign-up-container { left: 0; width: 50%; opacity: 0; z-index: 1; pointer-events: none; }
+.container.right-panel-active .sign-up-container { transform: translateX(100%); opacity: 1; z-index: 5; pointer-events: all; animation: show 0.6s; }
+@keyframes show { 0%, 49.99% { opacity: 0; z-index: 1; } 50%, 100% { opacity: 1; z-index: 5; } }
+.forgot-pass { color: var(--parchment); margin-top: 10px; cursor: pointer; font-size: 12px; text-decoration: underline; }
+/* --- NEW LOGO STYLES (Add to bottom of CSS) --- */
+
+.brand-logo {
+    position: absolute;
+    top: 40px;
+    left: 50px;
+    
+    /* Font Styling */
+    font-family: 'Cinzel', serif; /* The Magic Font */
+    font-size: 2rem;
+    font-weight: 900; /* Extra Bold */
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    z-index: 10;
+    
+    /* THE GOLDEN SHIMMER EFFECT */
+    /* We create a gradient: Gold -> White -> Gold */
+    background: linear-gradient(
+        to right, 
+        #d4af37 0%, 
+        #fff8e1 50%, 
+        #d4af37 100%
+    );
+    background-size: 200% auto;
+    
+    /* Clip the background to the text (The Magic Trick) */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; 
+    
+    /* Animate the gradient moving */
+    animation: shine 4s linear infinite, floatDown 1s ease-out forwards;
+    
+    /* Add a glow behind it */
+    filter: drop-shadow(0 0 10px rgba(255, 183, 77, 0.6));
+}
+
+/* Hover Effect: Glow gets brighter */
+.brand-logo:hover {
+    filter: drop-shadow(0 0 20px rgba(255, 183, 77, 1));
+    transform: scale(1.05); /* Slight zoom */
+    transition: 0.3s ease;
+}
+
+/* Animation 1: The Moving Shine */
+@keyframes shine {
+    to {
+        background-position: 200% center;
+    }
+}
+
+/* Animation 2: Entrance from Top */
+@keyframes floatDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

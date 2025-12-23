@@ -1,0 +1,277 @@
+/* src/components/Home/Home.css */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap');
+
+:root {
+    /* THE VIZCARD PREMIUM PALETTE */
+    --gold-primary: #FFD700;       /* Royal Gold */
+    --gold-dim: #C5A059;           /* Muted Antique Gold */
+    --wood-dark: #1a0f0a;          /* Deepest Wood */
+    --glass-panel: rgba(20, 10, 5, 0.75); 
+    --text-cream: #F5F5F0;         
+    --text-muted: #d0c0b0;         
+    --danger-red: #E57373;
+    --success-green: #81C784;
+}
+
+/* 1. CINEMATIC CONTAINER (Fixed Background) */
+.home-container {
+    min-height: 100vh; width: 100vw;
+    position: relative;
+    font-family: 'Lato', sans-serif;
+    color: var(--text-cream);
+    overflow-x: hidden;
+    /* REMOVED the solid black background color here so video shows */
+}
+
+/* The Vignette: Darkens edges only, keeps center clear */
+.home-container::before {
+    content: '';
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    /* Lighter Gradient: 0.6 opacity at edges instead of 0.95 */
+    background: radial-gradient(circle at center, rgba(0,0,0,0.1) 20%, rgba(0,0,0,0.7) 100%);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.bg-video-fixed {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: -3;
+    /* Brightened video slightly so it's not too dark */
+    filter: brightness(0.8) contrast(1.1) saturate(1.1);
+}
+
+/* 2. THE NAVBAR */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    padding: 0 5%;
+    height: 100px;
+    background: linear-gradient(to bottom, rgba(10, 5, 2, 0.9) 0%, rgba(10, 5, 2, 0) 100%);
+    z-index: 1000;
+    position: sticky; top: 0;
+}
+
+.nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(to bottom, #FFD700 0%, #B8860B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 10px rgba(0,0,0,0.8));
+    cursor: pointer;
+}
+
+/* 3. BUTTONS */
+.nav-links { display: flex; align-items: center; gap: 20px; height: 100%; }
+
+.nav-shared-style {
+    height: 46px; padding: 0 32px; border-radius: 50px; 
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(255, 255, 255, 0.05); /* Slightly more visible glass */
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: var(--gold-primary);
+    font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; text-decoration: none;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.nav-shared-style::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, #FFD700, #FFA000);
+    z-index: -1; transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+    transform: scaleX(0); transform-origin: right;
+}
+
+.nav-shared-style:hover { color: #1a0f0a; border-color: transparent; box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); }
+.nav-shared-style:hover::before { transform: scaleX(1); transform-origin: left; }
+.nav-shared-style.active { background: rgba(255, 215, 0, 0.15); color: #fff; box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); border-color: var(--gold-primary); }
+
+.logout-btn { margin-left: 40px; border-color: rgba(239, 83, 80, 0.4); color: #ef9a9a; }
+.logout-btn::before { background: linear-gradient(135deg, #EF5350, #C62828); }
+.logout-btn:hover { color: #fff; box-shadow: 0 0 25px rgba(239, 83, 80, 0.5); }
+
+/* --- 4. BOOKSHELF GRID --- */
+.bookshelf {
+    padding: 100px 5%;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 50px; max-width: 1600px; margin: 0 auto; z-index: 1;
+}
+
+.book-card {
+    background: rgba(30, 20, 15, 0.6); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 215, 0, 0.1); border-radius: 12px;
+    padding: 20px; text-align: center; transition: all 0.4s ease;
+    cursor: pointer; position: relative;
+}
+.book-card:hover {
+    transform: translateY(-12px) scale(1.02); border-color: var(--gold-primary);
+    background: rgba(30, 20, 15, 0.9); box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+}
+.book-cover { width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 6px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.4s; }
+.book-card:hover .book-cover { box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+.book-info h3 { font-family: 'Cinzel', serif; font-size: 1.4rem; color: #fff; margin: 10px 0 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.book-info p { font-family: 'Lato', sans-serif; color: var(--text-muted); font-size: 0.9rem; font-weight: 300; }
+
+.status-badge { display: inline-block; margin-top: 10px; padding: 5px 12px; border-radius: 4px; font-size: 0.7rem; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+.status-reading { background: rgba(255, 183, 77, 0.1); color: #FFB74D; border: 1px solid #FFB74D; }
+.status-finished { background: rgba(102, 187, 106, 0.1); color: #81C784; border: 1px solid #81C784; }
+.status-wishlist { background: rgba(239, 83, 80, 0.1); color: #EF5350; border: 1px solid #EF5350; }
+
+/* --- 5. BOOK DETAILS DOSSIER --- */
+.details-container {
+    min-height: 100vh;
+    padding-top: 100px;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.dossier-panel {
+    display: flex; width: 90%; max-width: 1400px;
+    background: rgba(15, 8, 5, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 50px 120px rgba(0,0,0,0.95);
+    animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.dossier-left {
+    flex: 1;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%);
+    padding: 60px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-right: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.dossier-cover {
+    width: 300px;
+    border-radius: 5px;
+    box-shadow: -15px 20px 40px rgba(0,0,0,0.8), 0 0 0 2px rgba(255, 215, 0, 0.1);
+    transform: perspective(1000px) rotateY(-15deg);
+    transition: all 0.5s ease;
+}
+.dossier-cover:hover {
+    transform: perspective(1000px) rotateY(0deg) scale(1.05);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.dossier-right {
+    flex: 1.5; padding: 70px; display: flex; flex-direction: column; justify-content: center;
+}
+
+.dossier-title {
+    font-family: 'Cinzel', serif; font-size: 3.5rem; font-weight: 700;
+    color: #fff; margin-bottom: 5px; line-height: 1.1;
+    text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.dossier-author {
+    font-family: 'Lato', sans-serif; font-size: 1.3rem;
+    color: var(--gold-primary); text-transform: uppercase; letter-spacing: 3px;
+    margin-bottom: 40px; font-weight: 700;
+}
+
+.dossier-review {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 30px; border-radius: 12px;
+    font-family: 'Crimson Text', serif; font-size: 1.3rem; line-height: 1.8;
+    color: #e0d0c0; font-style: italic;
+    border-left: 4px solid var(--gold-dim);
+    margin-bottom: 40px;
+}
+
+.btn-action {
+    padding: 18px 40px; border-radius: 8px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+    font-family: 'Cinzel', serif; transition: 0.3s; border: none;
+}
+
+.btn-read { background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%); color: #1a0f0a; flex: 2; }
+.btn-read:hover { box-shadow: 0 0 40px rgba(255, 160, 0, 0.5); transform: translateY(-2px); }
+
+.btn-edit { background: transparent; border: 1px solid var(--gold-dim); color: var(--gold-dim); flex: 1; }
+.btn-edit:hover { background: rgba(255, 215, 0, 0.1); color: #fff; border-color: #fff; }
+
+.btn-delete {
+    background: transparent; color: #E57373; opacity: 0.7; font-size: 0.9rem;
+    align-self: center; cursor: pointer; text-decoration: underline; margin-left: 20px;
+    border: none; padding: 0;
+}
+.btn-delete:hover { opacity: 1; color: #ff5555; }
+
+/* EDIT FORM */
+.edit-form-grid { display: grid; gap: 25px; }
+.edit-label { color: var(--gold-dim); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: block; }
+.edit-input, .edit-select, .edit-textarea {
+    width: 100%; background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white; padding: 15px; border-radius: 8px;
+    font-family: 'Lato', sans-serif; font-size: 1rem; outline: none; transition: 0.3s;
+}
+.edit-input:focus, .edit-textarea:focus, .edit-select:focus { border-color: var(--gold-primary); background: rgba(0,0,0,0.5); }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+/* --- COLLECTION / PURCHASED PAGE GRID --- */
+
+.books-grid {
+    display: grid;
+    /* This magic line makes cards responsive: min 250px wide, max fills space */
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+    gap: 40px;
+    width: 100%;
+    max-width: 1200px; /* Stops it from stretching too wide on giant screens */
+    margin: 50px auto; /* Centers the whole grid */
+    padding-bottom: 50px;
+}
+
+.book-card {
+    background: rgba(20, 15, 10, 0.8); /* Dark glass background */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 215, 0, 0.15); /* Subtle gold border */
+    border-radius: 16px;
+    overflow: hidden; /* Cuts off corners of images that are too big */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: #FFD700;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+/* --- THE FIX FOR GIANT IMAGES --- */
+.book-cover {
+    width: 100%; /* Force width to match card */
+    height: 340px; /* Fixed height so all books look uniform */
+    object-fit: cover; /* Crops image neatly instead of squishing it */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.book-info {
+    padding: 20px;
+    text-align: center;
+}
+
+.book-info h3 {
+    font-family: 'Cinzel', serif;
+    color: #fff;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Adds '...' if title is too long */
+}
+
+.book-info p {
+    font-family: 'Lato', sans-serif;
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}

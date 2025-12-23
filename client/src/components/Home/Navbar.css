@@ -1,0 +1,153 @@
+/* client/src/components/Home/Navbar.css */
+
+/* 1. THE LAYOUT CONTAINER */
+.navbar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; 
+    height: 100px; 
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    z-index: 9999;
+    pointer-events: none; 
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 2. THE VISIBLE BAR */
+.navbar-pill {
+    pointer-events: auto; 
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Vertical Center Logic */
+    padding: 0 40px;
+    
+    width: 94%; 
+    max-width: 1400px;
+    height: 80px;
+    background: transparent;
+    border-radius: 0;
+    border: 1px solid transparent;
+    backdrop-filter: blur(0px); 
+    
+    will-change: transform, width, background, backdrop-filter;
+    transform: translateY(0);
+    
+    transition: 
+        width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+        height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+        transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+        background 0.4s ease,
+        border 0.4s ease,
+        border-radius 0.4s ease,
+        backdrop-filter 0.4s ease;
+}
+
+/* 3. SCROLLED STATE */
+.navbar-container.scrolled .navbar-pill {
+    width: 85%; 
+    max-width: 1100px;
+    height: 70px; 
+    transform: translateY(15px); 
+    background: rgba(15, 10, 5, 0.75); 
+    backdrop-filter: blur(16px); 
+    border: 1px solid rgba(255, 215, 0, 0.15); 
+    border-radius: 50px; 
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* 4. HIDDEN STATE */
+.navbar-container.hidden {
+    transform: translateY(-120%); 
+}
+
+/* --- LOGO & LINKS --- */
+.nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    background: linear-gradient(to right, #FFD700, #FDB813);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    cursor: pointer;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+
+/* --- THE ALIGNMENT FIX IS HERE --- */
+.nav-links {
+    display: flex;
+    align-items: center; /* Forces vertical centering of all children */
+    gap: 8px;
+    height: 100%; /* Ensures it fills the bar height */
+}
+
+/* --- BUTTONS --- */
+.nav-item {
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 30px;
+    display: flex; 
+    justify-content: center; 
+    align-items: center; /* Centers text inside the button */
+    
+    font-family: 'Lato', sans-serif; 
+    font-size: 0.85rem; 
+    font-weight: 700;
+    letter-spacing: 1px; 
+    text-transform: uppercase; 
+    text-decoration: none;
+    
+    color: #ccc;
+    background: transparent;
+    transition: all 0.2s ease-out;
+    border: 1px solid transparent;
+    
+    margin: 0; /* Removing default button margins */
+}
+
+.nav-item:hover, .nav-item.active {
+    color: #FFD700;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+/* --- PROFILE CONTAINER FIX --- */
+.profile-container { 
+    position: relative; 
+    /* These lines fix the downward shift: */
+    display: flex; 
+    align-items: center; 
+    height: 100%;
+}
+
+.profile-btn { 
+    border: 1px solid rgba(255, 255, 255, 0.15); 
+}
+
+.profile-dropdown {
+    position: absolute; top: 55px; right: 0; width: 240px;
+    background: rgba(12, 8, 4, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 16px; padding: 10px;
+    opacity: 0; transform: translateY(-10px) scale(0.95);
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; gap: 4px;
+}
+.profile-dropdown.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+.dropdown-item {
+    padding: 12px; color: #aaa; text-align: left; background: none; border: none;
+    font-family: 'Lato', sans-serif; font-size: 0.9rem; cursor: pointer; border-radius: 8px;
+    transition: 0.2s;
+}
+.dropdown-item:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+.login-btn { background: #FFD700; color: #1a0f0a; font-weight: 800; border: none; }
+.login-btn:hover { background: #FFC107; box-shadow: 0 0 25px rgba(255, 193, 7, 0.4); }

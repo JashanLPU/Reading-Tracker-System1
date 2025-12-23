@@ -1,0 +1,124 @@
+/* client/src/components/Home/Subscription.css */
+
+.sub-page-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding-top: 100px; /* Space for Navbar */
+    font-family: 'Lato', sans-serif;
+    color: white;
+}
+
+/* HEADER */
+.sub-header { text-align: center; margin-bottom: 50px; animation: fadeIn 1s ease-out; }
+.sub-subtitle { font-family: 'Crimson Text', serif; font-size: 1.5rem; color: #ccc; font-style: italic; margin-top: 10px; }
+
+/* GRID */
+.pricing-grid {
+    display: flex;
+    gap: 50px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 90%;
+    max-width: 1000px;
+    padding-bottom: 50px;
+}
+
+/* CARDS */
+.pricing-card {
+    position: relative;
+    width: 350px;
+    background: rgba(15, 10, 5, 0.75);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px;
+    text-align: center;
+    transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex; flex-direction: column;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* FEATURED CARD STYLES */
+.pricing-card.featured {
+    background: rgba(20, 10, 5, 0.85);
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+    transform: scale(1.05);
+}
+.pricing-card.featured:hover {
+    transform: scale(1.08);
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.2);
+}
+
+/* TEXT STYLES */
+.plan-name { font-family: 'Cinzel', serif; font-size: 1.8rem; margin: 20px 0; color: #fff; }
+.plan-price { font-size: 3.5rem; font-weight: 700; color: #FFD700; margin-bottom: 30px; }
+.currency { font-size: 1.5rem; vertical-align: top; margin-right: 5px; }
+.period { font-size: 1rem; color: #aaa; font-weight: 400; }
+
+.card-badge {
+    display: inline-block; padding: 5px 15px; border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1); font-size: 0.8rem; text-transform: uppercase;
+    letter-spacing: 1px; color: #ccc;
+}
+.card-badge.gold { background: rgba(255, 215, 0, 0.1); color: #FFD700; border: 1px solid rgba(255, 215, 0, 0.3); }
+
+/* RIBBON */
+.best-value-ribbon {
+    position: absolute; top: -15px; right: -15px;
+    background: linear-gradient(135deg, #FFD700, #FFA000);
+    color: #000; font-weight: bold; padding: 8px 15px;
+    border-radius: 5px; font-size: 0.8rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* FEATURES */
+.feature-list {
+    list-style: none; padding: 0; margin-bottom: 40px; text-align: left;
+    flex-grow: 1; /* Pushes button down */
+}
+.feature-list li {
+    padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: #ddd; font-size: 0.95rem;
+}
+.feature-list li strong { color: #fff; }
+
+/* BUTTONS */
+.btn-plan {
+    width: 100%; padding: 18px; border-radius: 50px; border: none;
+    background: rgba(255, 255, 255, 0.1); color: #fff;
+    font-family: 'Cinzel', serif; font-weight: bold; cursor: pointer;
+    transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+}
+.btn-plan:hover { background: #fff; color: #000; }
+
+.gold-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA000); color: #1a0f0a;
+}
+.gold-btn:hover {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); transform: translateY(-2px); color: #000;
+}
+
+.disabled {
+    opacity: 0.6; cursor: not-allowed; background: rgba(76, 175, 80, 0.2); color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+.disabled:hover { transform: none; background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+
+/* ANIMATION */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 768px) {
+    .pricing-card.featured { transform: scale(1); }
+    .pricing-card.featured:hover { transform: translateY(-10px); }
+}
