@@ -1,5 +1,5 @@
 {
-  "name": "reading-tracker",
+  "name": "reading-tracker-system",
   "private": true,
   "scripts": {
     "dev": "npm run dev --prefix client",
