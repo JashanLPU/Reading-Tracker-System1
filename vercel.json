@@ -13,7 +13,7 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/server/index.js" },
-    { "source": "/assets/(.*)", "destination": "/assets/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/assets/(.*)", "destination": "/client/dist/assets/$1" },
+    { "source": "/(.*)", "destination": "/client/dist/index.html" }
   ]
 }
