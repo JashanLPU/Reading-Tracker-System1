@@ -13,6 +13,6 @@
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/server/index.js" },
-    { "source": "/(.*)", "destination": "/client/index.html" }
+    { "source": "/((?!api/.*|.*\\..*).*)", "destination": "/index.html" }
   ]
 }
