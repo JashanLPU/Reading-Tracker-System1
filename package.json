@@ -1,8 +1,8 @@
 {
-  "name": "reading-tracker-system",
-  "version": "1.0.0",
+  "name": "reading-tracker",
   "private": true,
-  "engines": {
-    "node": "20.x"
+  "scripts": {
+    "dev": "npm run dev --prefix client",
+    "build": "npm run build --prefix client"
   }
 }
