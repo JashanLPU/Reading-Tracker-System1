@@ -29,7 +29,7 @@ const SubscriptionPage = () => {
 
         try {
             // 1. Create Order
-            const orderData = await axios.post("http://localhost:5000/create-order", { amount: amount * 100 });
+            const orderData = await axios.post("/api/create-order", { amount: amount * 100 });
             
             // 2. Open Payment
             const options = {
@@ -44,7 +44,7 @@ const SubscriptionPage = () => {
                     const userId = localStorage.getItem("userId");
                     
                     // 3. Verify on Backend
-                    await axios.post("http://localhost:5000/verify-membership", {
+                    await axios.post("/api/verify-membership", {
                         userId: userId,
                         planType: planName,
                         razorpay_payment_id: response.razorpay_payment_id,

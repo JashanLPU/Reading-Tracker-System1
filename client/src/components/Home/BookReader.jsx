@@ -15,7 +15,7 @@ const BookReader = () => {
     const [hasRated, setHasRated] = useState(false);
 
     useEffect(() => {
-        axios.get(`http://localhost:5000/get-book/${id}`)
+        axios.get(`/api/get-book/${id}`)
             .then(res => {
                 const b = res.data.book;
                 setBook(b);
@@ -56,7 +56,7 @@ const BookReader = () => {
         setHasRated(true);
         const userId = localStorage.getItem("userId");
         try {
-            await axios.put(`http://localhost:5000/update-book/${id}`, { rating: score });
+            await axios.put(`/api/update-book/${id}`, { rating: score });
             if (userId) {
                 const key = `reading_tracker_${userId}`;
                 const currentData = JSON.parse(localStorage.getItem(key)) || {};

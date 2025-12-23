@@ -15,7 +15,7 @@ const PurchasedPage = () => {
         if (!userId) { navigate('/auth'); return; }
 
         // 1. Fetch Books from DB
-        axios.get(`http://localhost:5000/my-collection/${userId}`)
+        axios.get(`/api/my-collection/${userId}`)
             .then(res => {
                 if (res.data.status === 'ok') {
                     setBooks(res.data.books);

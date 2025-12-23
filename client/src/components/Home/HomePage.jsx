@@ -14,7 +14,7 @@ const HomePage = () => {
         if(!localStorage.getItem("userId")) { navigate('/auth'); return; }
         setIsMember(localStorage.getItem("isMember") === "true");
 
-        axios.get('http://localhost:5000/library')
+        axios.get('/api/library')
             .then(res => { if(res.data.status === 'ok') setBooks(res.data.books); })
             .catch(err => console.log(err));
     }, [navigate]);

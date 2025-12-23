@@ -17,11 +17,11 @@ const BookDetails = () => {
         if(!userId) { navigate('/auth'); return; }
 
         // 1. Fetch Book
-        axios.get(`http://localhost:5000/get-book/${id}`)
+        axios.get(`/api/get-book/${id}`)
             .then(res => setBook(res.data.book));
 
         // 2. Check User Status
-        axios.get(`http://localhost:5000/get-user/${userId}`)
+        axios.get(`/api/get-user/${userId}`)
             .then(res => {
                 if(res.data.status === 'ok') {
                     setIsMember(res.data.user.isMember);
@@ -50,7 +50,7 @@ const BookDetails = () => {
         if (!res) return;
 
         try {
-            const orderData = await axios.post("http://localhost:5000/create-order", { amount: book.price * 100 });
+            const orderData = await axios.post("/api/create-order", { amount: book.price * 100 });
             
             const options = {
                 key: "rzp_test_Ruf0QnWdRTCqcs",
@@ -61,7 +61,7 @@ const BookDetails = () => {
                 order_id: orderData.data.id,
                 
                 handler: async function (response) {
-                    await axios.post("http://localhost:5000/record-purchase", { userId, bookId: book._id });
+                    await axios.post("/api/record-purchase", { userId, bookId: book._id });
                     alert("Book Added to Collection!");
                     setIsOwned(true);
                     navigate('/collection');
@@ -76,7 +76,7 @@ const BookDetails = () => {
     // B. CLAIM PREMIUM BOOK (Members Only)
     const handleClaimPremium = async () => {
         const userId = localStorage.getItem("userId");
-        const res = await axios.post("http://localhost:5000/claim-premium", { userId, bookId: book._id });
+        const res = await axios.post("/api/claim-premium", { userId, bookId: book._id });
         
         if (res.data.status === 'ok') {
             alert("✨ Premium Book Claimed!");
