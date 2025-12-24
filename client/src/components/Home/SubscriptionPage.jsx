@@ -33,7 +33,7 @@ const SubscriptionPage = () => {
 
         try {
             // 1. Create Order
-            const orderData = await axios.post("${API}/create-order", { amount: amount * 100 });
+            const orderData = await axios.post(`${API}/create-order`, { amount: amount * 100 });
             
             // 2. Open Payment
             const options = {
