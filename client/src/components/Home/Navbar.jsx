@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import './Navbar.css';
+import API from "../../config/api";
+
+// or "../../config${API}" depending on folder
+
 
 const Navbar = () => {
     const navigate = useNavigate();

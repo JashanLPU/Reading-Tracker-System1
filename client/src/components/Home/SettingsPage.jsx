@@ -4,6 +4,10 @@ import axios from 'axios';
 import './Home.css';
 import './Contact.css'; // Re-use contact styles for the form layout
 import videoBg from '../../background.mp4';
+import API from "../../config/api";
+
+// or "../../config${API}" depending on folder
+
 
 const SettingsPage = () => {
     const navigate = useNavigate();
@@ -19,7 +23,7 @@ const SettingsPage = () => {
             return;
         }
 
-        axios.get(`/api/get-user/${userId}`)
+        axios.get(`${API}/get-user/${userId}`)
             .then(res => {
                 if (res.data.status === 'ok') {
                     setName(res.data.user.name);
@@ -36,7 +40,7 @@ const SettingsPage = () => {
         const userId = localStorage.getItem("userId");
 
         try {
-            const res = await axios.put(`/api/update-user/${userId}`, {
+            const res = await axios.put(`${API}/update-user/${userId}`, {
                 name, 
                 email
             });

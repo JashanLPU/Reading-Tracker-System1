@@ -4,6 +4,10 @@ import axios from 'axios';
 import './Home.css';    
 import './Contact.css'; 
 import videoBg from '../../background.mp4';
+import API from "../../config/api";
+
+// or "../../config${API}" depending on folder
+
 
 const ContactPage = () => {
     const navigate = useNavigate();
@@ -24,7 +28,7 @@ const ContactPage = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('/api/contact', { 
+            const res = await axios.post('${API}/contact', { 
                 name, email, subject, message 
             });
             

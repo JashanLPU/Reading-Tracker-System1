@@ -3,6 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Home.css';
 import videoBg from '../../background.mp4';
+import API from "../../config/api";
+
+// or "../../config${API}" depending on folder
+
 
 const PurchasedPage = () => {
     const navigate = useNavigate();
@@ -15,7 +19,7 @@ const PurchasedPage = () => {
         if (!userId) { navigate('/auth'); return; }
 
         // 1. Fetch Books from DB
-        axios.get(`/api/my-collection/${userId}`)
+        axios.get(`${API}/my-collection/${userId}`)
             .then(res => {
                 if (res.data.status === 'ok') {
                     setBooks(res.data.books);

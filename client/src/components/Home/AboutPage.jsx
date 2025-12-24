@@ -2,6 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './About.css'; 
 import videoBg from '../../background.mp4';
+import API from "../../config/api";
+
+// or "../../config${API}" depending on folder
+
 
 const AboutPage = () => {
     const navigate = useNavigate();
