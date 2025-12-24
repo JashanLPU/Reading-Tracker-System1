@@ -1,238 +1,248 @@
-/* server/index.js */
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+require('dotenv').config(); // Load environment variables
 
-// MODELS
+// Import Models
 const User = require('./models/User');
 const Book = require('./models/Book');
 const Message = require('./models/Message');
 
 const app = express();
+
+// --- 1. CORS CONFIGURATION (Crucial for Vercel Frontend) ---
+app.use(cors({
+    origin: ["https://reading-tracker-system.vercel.app", "http://localhost:5173"], // Replace first string with your actual Vercel URL after deployment
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
+}));
+
 app.use(express.json());
-app.use(cors());
 
-// --- DATABASE CONNECTION ---
-const DB_URI =
-  process.env.MONGO_URI ||
-  "mongodb+srv://admin1:admin123@cluster0.0x7h9fz.mongodb.net/?appName=Cluster0";
+// --- 2. SECURE DATABASE CONNECTION ---
+// We use process.env.MONGO_URL so you don't expose your password
+mongoose.connect(process.env.MONGO_URL)
+    .then(() => console.log("Connected to MongoDB Atlas"))
+    .catch(err => console.error("MongoDB Connection Error:", err));
 
-mongoose
-  .connect(DB_URI)
-  .then(() => console.log("✅ Cloud DB Connected"))
-  .catch(err => console.log("❌ DB Error:", err));
+const JWT_SECRET = process.env.JWT_SECRET || 'secret123';
 
-// --- RAZORPAY ---
-const razorpay = new Razorpay({
-  key_id: "rzp_test_Ruf0QnWdRTCqcs",
-  key_secret: "n0EjlUB5PjAaW8EGoRYGwvhn"
-});
+// ================= ROUTES ================= //
 
-// --- ROUTES ---
-
-// 1. Auth
+// REGISTER
 app.post('/register', async (req, res) => {
-  try {
     const { name, email, password } = req.body;
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.json({ status: "error", message: "User already exists" });
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.json({ status: 'error', message: 'User already exists' });
 
-    const newUser = await User.create({ name, email, password });
-    res.json({ status: "ok", user: newUser });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await User.create({ name, email, password: hashedPassword });
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.json({ status: 'error', message: err.message });
+    }
 });
 
+// LOGIN
 app.post('/login', async (req, res) => {
-  try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    try {
+        const user = await User.findOne({ email });
+        if (!user) return res.json({ status: 'error', message: 'User not found' });
 
-    if (user && user.password === password) {
-      return res.json({
-        status: "ok",
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          isMember: user.isMember,
-          planType: user.planType,
-          purchasedBooks: user.purchasedBooks
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            const token = jwt.sign({ email: user.email, id: user._id }, JWT_SECRET);
+            return res.json({ status: 'ok', token, user: { name: user.name, id: user._id, plan: user.planType } });
+        } else {
+            return res.json({ status: 'error', message: 'Invalid Password' });
         }
-      });
+    } catch (err) {
+        res.json({ status: 'error', message: err.message });
     }
-
-    res.json({ status: "error", message: "Invalid Credentials" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
 });
 
-// 2. Profile
-app.get('/get-user/:id', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id);
-    res.json({ status: user ? "ok" : "error", user });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
-});
-
-app.put('/update-user/:id', async (req, res) => {
-  try {
-    const { name, email } = req.body;
-    await User.findByIdAndUpdate(req.params.id, { name, email });
-    res.json({ status: "ok", message: "Profile Updated" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
-});
-
-// 3. Payment
-app.post('/create-order', async (req, res) => {
-  try {
-    const { amount } = req.body;
-    const options = {
-      amount,
-      currency: "INR",
-      receipt: "r_" + Date.now()
-    };
-    const order = await razorpay.orders.create(options);
-    res.json(order);
-  } catch (err) {
-    res.status(500).send("Error creating order");
-  }
-});
-
-app.post('/verify-membership', async (req, res) => {
-  try {
-    const {
-      userId,
-      planType,
-      razorpay_payment_id,
-      razorpay_order_id,
-      razorpay_signature
-    } = req.body;
-
-    const MY_SECRET = "n0EjlUB5PjAaW8EGoRYGwvhn";
-    const generated_signature = crypto
-      .createHmac('sha256', MY_SECRET)
-      .update(razorpay_order_id + "|" + razorpay_payment_id)
-      .digest('hex');
-
-    if (generated_signature === razorpay_signature) {
-      await User.findByIdAndUpdate(userId, {
-        isMember: true,
-        planType
-      });
-      res.json({ status: "ok", message: "Membership Granted" });
-    } else {
-      res.json({ status: "error", message: "Verification Failed" });
+// ADMIN SEED (Use carefully in production)
+app.post('/admin-seed', async (req, res) => {
+    try {
+        await Book.deleteMany({});
+        await Book.create([
+            {
+                title: "The Alchemist",
+                author: "Paulo Coelho",
+                coverUrl: "https://images-na.ssl-images-amazon.com/images/I/71aFt4+OTOL.jpg",
+                content: "The boy's name was Santiago...",
+                price: 299,
+                isPremium: false
+            },
+            {
+                title: "Atomic Habits",
+                author: "James Clear",
+                coverUrl: "https://m.media-amazon.com/images/I/91bYsX41DVL.jpg",
+                content: "Changes that seem small and unimportant at first...",
+                price: 499,
+                isPremium: true
+            }
+        ]);
+        res.json({ status: 'ok', message: 'Library seeded' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
 });
 
-app.post('/record-purchase', async (req, res) => {
-  try {
-    const { userId, bookId } = req.body;
-    const bookObjectId = new mongoose.Types.ObjectId(bookId);
-
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { purchasedBooks: bookObjectId }
-    });
-
-    res.json({ status: "ok", message: "Purchase Recorded" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
-});
-
-app.post('/claim-premium', async (req, res) => {
-  try {
-    const { userId, bookId } = req.body;
-    const user = await User.findById(userId);
-
-    if (!user || !user.isMember)
-      return res.json({ status: "error", message: "Membership Required" });
-
-    const bookObjectId = new mongoose.Types.ObjectId(bookId);
-
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { purchasedBooks: bookObjectId }
-    });
-
-    res.json({ status: "ok", message: "Claimed" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
-});
-
-// 4. Books & Library
+// GET LIBRARY
 app.get('/library', async (req, res) => {
-  try {
-    const books = await Book.find({});
-    res.json({ status: "ok", books });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
+    try {
+        const books = await Book.find();
+        res.json({ status: 'ok', books });
+    } catch (err) {
+        res.json({ status: 'error', message: err.message });
+    }
 });
 
+// GET SINGLE BOOK
 app.get('/get-book/:id', async (req, res) => {
-  try {
-    const book = await Book.findById(req.params.id);
-    res.json({ status: "ok", book });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
+    try {
+        const book = await Book.findById(req.params.id);
+        res.json({ status: 'ok', book });
+    } catch (err) {
+        res.json({ status: 'error', message: err.message });
+    }
 });
 
+// UPDATE BOOK RATING
 app.put('/update-book/:id', async (req, res) => {
-  try {
-    const { rating, review } = req.body;
-    const update = {};
-    if (rating) update.rating = rating;
-    if (review) update.review = review;
-
-    await Book.findByIdAndUpdate(req.params.id, update);
-    res.json({ status: "ok", message: "Updated" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
+    try {
+        const { rating } = req.body;
+        await Book.findByIdAndUpdate(req.params.id, { rating });
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.json({ status: 'error' });
+    }
 });
 
+// GET USER COLLECTION
 app.get('/my-collection/:userId', async (req, res) => {
-  try {
-    const user = await User.findById(req.params.userId).populate('purchasedBooks');
-    if (user)
-      res.json({ status: "ok", books: user.purchasedBooks });
-    else
-      res.json({ status: "error", message: "User not found" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
+    try {
+        const user = await User.findById(req.params.userId).populate('purchasedBooks');
+        res.json({ status: 'ok', books: user ? user.purchasedBooks : [] });
+    } catch (err) {
+        res.json({ status: 'error', message: err.message });
+    }
 });
 
+// CONTACT FORM
 app.post('/contact', async (req, res) => {
-  try {
-    const { name, email, subject, message } = req.body;
-    await Message.create({ name, email, subject, message });
-    res.json({ status: "ok", message: "Sent" });
-  } catch (err) {
-    res.json({ status: "error", message: err.message });
-  }
+    try {
+        await Message.create(req.body);
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.json({ status: 'error' });
+    }
 });
 
-// --- SERVER START (FIXED FOR RENDER + LOCAL) ---
+// GET USER DETAILS
+app.get('/get-user/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        res.json({ status: 'ok', user });
+    } catch (err) {
+        res.json({ status: 'error' });
+    }
+});
+
+// UPDATE USER PROFILE
+app.put('/update-user/:id', async (req, res) => {
+    try {
+        const { name, email } = req.body;
+        await User.findByIdAndUpdate(req.params.id, { name, email });
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.json({ status: 'error' });
+    }
+});
+
+// --- RAZORPAY PAYMENT ---
+app.post('/create-order', async (req, res) => {
+    try {
+        const razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,     // Set in Render Environment Variables
+            key_secret: process.env.RAZORPAY_KEY_SECRET // Set in Render Environment Variables
+        });
+
+        const options = {
+            amount: req.body.amount,
+            currency: "INR",
+            receipt: crypto.randomBytes(10).toString("hex"),
+        };
+
+        const order = await razorpay.orders.create(options);
+        res.json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Error creating order");
+    }
+});
+
+// RECORD PURCHASE
+app.post('/record-purchase', async (req, res) => {
+    const { userId, bookId } = req.body;
+    try {
+        const user = await User.findById(userId);
+        if (!user.purchasedBooks.includes(bookId)) {
+            user.purchasedBooks.push(bookId);
+            await user.save();
+        }
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.status(500).json({ status: 'error' });
+    }
+});
+
+// VERIFY MEMBERSHIP PAYMENT
+app.post('/verify-membership', async (req, res) => {
+    const { userId, planType, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+        .update(body.toString())
+        .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+        await User.findByIdAndUpdate(userId, { isMember: true, planType: planType });
+        res.json({ status: 'ok' });
+    } else {
+        res.json({ status: 'error', message: 'Invalid Signature' });
+    }
+});
+
+// CLAIM PREMIUM BOOK
+app.post('/claim-premium', async (req, res) => {
+    const { userId, bookId } = req.body;
+    try {
+        const user = await User.findById(userId);
+        if (user.isMember) {
+            if (!user.purchasedBooks.includes(bookId)) {
+                user.purchasedBooks.push(bookId);
+                await user.save();
+            }
+            res.json({ status: 'ok' });
+        } else {
+            res.json({ status: 'error', message: 'Not a member' });
+        }
+    } catch (err) {
+        res.status(500).json({ status: 'error' });
+    }
+});
+
+// --- 3. DYNAMIC PORT LISTENER (Required for Deployment) ---
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`Server running on Port ${PORT}`);
 });
-
-module.exports = app;
