@@ -54,7 +54,7 @@ const BookDetails = () => {
         if (!res) return;
 
         try {
-            const orderData = await axios.post("${API}/create-order", { amount: book.price * 100 });
+            const orderData = await axios.post(`${API}/create-order`, { amount: book.price * 100 });
             
             const options = {
                 key: "rzp_test_Ruf0QnWdRTCqcs",
