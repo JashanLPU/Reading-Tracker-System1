@@ -16,7 +16,11 @@ const app = express();
 
 // --- 1. CORS CONFIGURATION (Crucial for Vercel Frontend) ---
 app.use(cors({
-    origin: ["https://reading-tracker-system.vercel.app", "http://localhost:5173"], // Replace first string with your actual Vercel URL after deployment
+    origin: [
+        "http://localhost:5173", 
+        "https://reading-tracker-system1.onrender.com", // (Optional: your backend URL)
+        "https://YOUR-NETLIFY-SITE-NAME.netlify.app"   // <--- PASTE YOUR NETLIFY LINK HERE
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
