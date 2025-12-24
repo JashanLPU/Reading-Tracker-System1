@@ -5,9 +5,6 @@ import './Home.css';
 import videoBg from '../../background.mp4';
 import API from "../../config/api";
 
-// or "../../config${API}" depending on folder
-
-
 const BookDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -20,11 +17,12 @@ const BookDetails = () => {
         const userId = localStorage.getItem("userId");
         if(!userId) { navigate('/auth'); return; }
 
-        // 1. Fetch Book
+        // 1. Fetch Book (Uses Backticks ` `)
         axios.get(`${API}/get-book/${id}`)
-            .then(res => setBook(res.data.book));
+            .then(res => setBook(res.data.book))
+            .catch(err => console.error("Error fetching book:", err));
 
-        // 2. Check User Status
+        // 2. Check User Status (Uses Backticks ` `)
         axios.get(`${API}/get-user/${userId}`)
             .then(res => {
                 if(res.data.status === 'ok') {
@@ -34,14 +32,28 @@ const BookDetails = () => {
                     const myBooks = res.data.user.purchasedBooks || [];
                     if (myBooks.includes(id)) setIsOwned(true);
                 }
-            });
+            })
+            .catch(err => console.error("Error fetching user:", err));
     }, [id, navigate]);
+
+    // --- HELPER: Update Local Storage (Syncs Frontend with Backend) ---
+    const updateLocalLibrary = (newBookId) => {
+        const currentUser = JSON.parse(localStorage.getItem("user"));
+        if (currentUser) {
+            if (!currentUser.purchasedBooks) currentUser.purchasedBooks = [];
+            
+            if (!currentUser.purchasedBooks.includes(newBookId)) {
+                currentUser.purchasedBooks.push(newBookId);
+                localStorage.setItem("user", JSON.stringify(currentUser));
+            }
+        }
+    };
 
     // A. BUY NORMAL BOOK (Everyone pays)
     const handlePurchase = async () => {
         const userId = localStorage.getItem("userId");
         
-        // Load Razorpay
+        // Load Razorpay Script
         const load = (src) => new Promise((resolve) => {
             const script = document.createElement("script");
             script.src = src;
@@ -51,9 +63,10 @@ const BookDetails = () => {
         });
 
         const res = await load("https://checkout.razorpay.com/v1/checkout.js");
-        if (!res) return;
+        if (!res) { alert("Razorpay failed to load"); return; }
 
         try {
+            // FIXED: Used Backticks ` ` instead of Quotes " "
             const orderData = await axios.post(`${API}/create-order`, { amount: book.price * 100 });
             
             const options = {
@@ -65,29 +78,46 @@ const BookDetails = () => {
                 order_id: orderData.data.id,
                 
                 handler: async function (response) {
-                    await axios.post("${API}/record-purchase", { userId, bookId: book._id });
-                    alert("Book Added to Collection!");
+                    // FIXED: Used Backticks ` ` here too
+                    await axios.post(`${API}/record-purchase`, { userId, bookId: book._id });
+                    
+                    // Update Local Storage & State
+                    updateLocalLibrary(book._id);
                     setIsOwned(true);
+                    
+                    alert("Book Added to Collection!");
                     navigate('/collection');
                 },
                 theme: { color: "#FFD700" }
             };
             const rzp = new window.Razorpay(options);
             rzp.open();
-        } catch(err) { alert("Purchase Failed"); }
+        } catch(err) { 
+            console.error(err);
+            alert("Purchase Failed"); 
+        }
     };
 
     // B. CLAIM PREMIUM BOOK (Members Only)
     const handleClaimPremium = async () => {
         const userId = localStorage.getItem("userId");
-        const res = await axios.post("${API}/claim-premium", { userId, bookId: book._id });
-        
-        if (res.data.status === 'ok') {
-            alert("✨ Premium Book Claimed!");
-            setIsOwned(true);
-            navigate('/collection');
-        } else {
-            alert(res.data.message);
+        try {
+            // FIXED: Used Backticks ` ` instead of Quotes " "
+            const res = await axios.post(`${API}/claim-premium`, { userId, bookId: book._id });
+            
+            if (res.data.status === 'ok') {
+                // Update Local Storage & State
+                updateLocalLibrary(book._id);
+                setIsOwned(true);
+
+                alert("✨ Premium Book Claimed!");
+                navigate('/collection');
+            } else {
+                alert(res.data.message);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error claiming book");
         }
     };
 
