@@ -1,20 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './Subscription.css'; // New CSS file
+import './Subscription.css';
 import videoBg from '../../background.mp4';
 import API from "../../config/api";
-
-// or "../../config${API}" depending on folder
-
 
 const SubscriptionPage = () => {
     const navigate = useNavigate();
     const [currentPlan, setCurrentPlan] = useState('Novice'); 
 
     useEffect(() => {
-        const plan = localStorage.getItem("userPlan");
-        if (plan) setCurrentPlan(plan);
+        // Check both simple key and full user object
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user && user.planType) {
+            setCurrentPlan(user.planType);
+        } else {
+            const plan = localStorage.getItem("userPlan");
+            if (plan) setCurrentPlan(plan);
+        }
     }, []);
 
     const loadRazorpay = (src) => {
@@ -37,7 +40,7 @@ const SubscriptionPage = () => {
             
             // 2. Open Payment
             const options = {
-                key: "rzp_test_Ruf0QnWdRTCqcs", // ✅ FIXED: YOUR REAL KEY ID
+                key: "rzp_test_Ruf0QnWdRTCqcs", 
                 amount: orderData.data.amount,
                 currency: "INR",
                 name: "StoryVerse",
@@ -48,7 +51,8 @@ const SubscriptionPage = () => {
                     const userId = localStorage.getItem("userId");
                     
                     // 3. Verify on Backend
-                    await axios.post("${API}/verify-membership", {
+                    // FIXED: Used backticks ` ` instead of quotes " "
+                    const verifyRes = await axios.post(`${API}/verify-membership`, {
                         userId: userId,
                         planType: planName,
                         razorpay_payment_id: response.razorpay_payment_id,
@@ -56,13 +60,25 @@ const SubscriptionPage = () => {
                         razorpay_signature: response.razorpay_signature
                     });
                     
-                    // 4. Update Local State
-                    localStorage.setItem("userPlan", planName);
-                    localStorage.setItem("isMember", "true");
-                    
-                    alert(`Welcome to the ${planName} tier!`);
-                    navigate('/home');
-                    window.location.reload();
+                    if (verifyRes.data.status === "ok") {
+                        // 4. Update Local State (CRITICAL FIX)
+                        localStorage.setItem("userPlan", planName);
+                        localStorage.setItem("isMember", "true");
+
+                        // Update the Main User Object too (so the UI updates instantly)
+                        const currentUser = JSON.parse(localStorage.getItem("user"));
+                        if (currentUser) {
+                            currentUser.isMember = true;
+                            currentUser.planType = planName;
+                            localStorage.setItem("user", JSON.stringify(currentUser));
+                        }
+                        
+                        alert(`Welcome to Eternity! You are now a ${planName}.`);
+                        navigate('/home');
+                        window.location.reload();
+                    } else {
+                        alert("Payment Verification Failed on Server");
+                    }
                 },
                 theme: { color: "#FFD700" }
             };
@@ -70,7 +86,7 @@ const SubscriptionPage = () => {
             rzp.open();
         } catch (err) { 
             console.error(err);
-            alert("Payment initiation failed. Please try again."); 
+            alert("Payment initiation failed. See console for details."); 
         }
     };
 
