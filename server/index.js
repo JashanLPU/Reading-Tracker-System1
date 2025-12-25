@@ -202,6 +202,19 @@ app.post('/claim-premium', async (req, res) => {
         res.status(500).json({ status: 'error' });
     }
 });
+// --- ADD THIS TO SERVER/INDEX.JS ---
+
+// UPDATE USER PROFILE
+app.put('/update-profile', async (req, res) => {
+    const { userId, name, email } = req.body;
+    try {
+        // Find user and update name/email
+        await User.findByIdAndUpdate(userId, { name, email });
+        res.json({ status: 'ok' });
+    } catch (err) {
+        res.json({ status: 'error', message: err.message });
+    }
+});
 
 // --- 4. START SERVER ---
 const PORT = process.env.PORT || 5000;
