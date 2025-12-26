@@ -1,55 +1,48 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+// We don't need 'cors' package anymore, we will do it manually
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-// Import Models
-// Ensure these files exist in your 'models' folder
 const User = require('./models/User');
 const Book = require('./models/Book');
 const Message = require('./models/Message');
 
 const app = express();
 
-// --- 1. CORS CONFIGURATION ---
-// This allows your frontend to talk to this backend
-// --- 1. SMART CORS CONFIGURATION ---
-app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
+// --- 1. THE "NUCLEAR" MANAUAL CORS FIX ---
+// This middleware runs before everything else
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    
+    // Check if the origin is your localhost OR any Vercel app
+    if (origin && (origin.includes("localhost") || origin.endsWith(".vercel.app"))) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+    }
 
-        // Define allowed domains (Localhost + Your specific production domain)
-        const allowedOrigins = [
-            "http://localhost:5173", 
-            "https://reading-tracker-client.vercel.app"
-        ];
+    // Allow these headers and methods
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
 
-        // LOGIC: Allow if it's in the list OR if it's ANY Vercel deployment URL
-        if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
-}));
+    // Handle the "OPTIONS" preflight request immediately
+    if (req.method === "OPTIONS") {
+        return res.status(200).end();
+    }
+
+    next();
+});
 
 app.use(express.json());
 
-// --- 2. DATABASE CONNECTION (Optimized for Vercel) ---
-// If you forget to add the variable in Vercel, it uses the string after '||'
-const DB_URI = process.env.MONGO_URL || "mongodb+srv://admin1:admin123@cluster0.0x7h9fz.mongodb.net/?appName=Cluster0";
+// --- 2. DB CONNECTION ---
+const DB_URI = process.env.MONGO_URL; 
 
 let cached = global.mongoose;
-if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null };
-}
+if (!cached) { cached = global.mongoose = { conn: null, promise: null }; }
 
 async function connectDB() {
     if (cached.conn) return cached.conn;
@@ -69,14 +62,18 @@ const JWT_SECRET = process.env.JWT_SECRET || 'mySuperSecretKey123';
 
 // Health Check
 app.get('/', (req, res) => {
-    res.json({ message: "Backend is running on Vercel!" });
+    res.json({ status: "Active", message: "Backend is running!" });
 });
 
 // REGISTER
 app.post('/register', async (req, res) => {
-    await connectDB(); // connectDB must be called inside every route
-    const { name, email, password } = req.body;
     try {
+        await connectDB();
+        const { name, email, password } = req.body;
+        
+        // Log for debugging in Vercel Dashboard
+        console.log("Registering user:", email);
+
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.json({ status: 'error', message: 'User already exists' });
 
@@ -84,15 +81,17 @@ app.post('/register', async (req, res) => {
         await User.create({ name, email, password: hashedPassword });
         res.json({ status: 'ok' });
     } catch (err) {
-        res.json({ status: 'error', message: err.message });
+        console.error("Register Error:", err);
+        // Important: Send JSON error so frontend doesn't crash
+        res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
 // LOGIN
 app.post('/login', async (req, res) => {
-    await connectDB();
-    const { email, password } = req.body;
     try {
+        await connectDB();
+        const { email, password } = req.body;
         const user = await User.findOne({ email });
         if (!user) return res.json({ status: 'error', message: 'User not found' });
 
@@ -104,7 +103,7 @@ app.post('/login', async (req, res) => {
             return res.json({ status: 'error', message: 'Invalid Password' });
         }
     } catch (err) {
-        res.json({ status: 'error', message: err.message });
+        res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
@@ -115,7 +114,7 @@ app.get('/library', async (req, res) => {
         const books = await Book.find();
         res.json({ status: 'ok', books });
     } catch (err) {
-        res.json({ status: 'error', message: err.message });
+        res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
@@ -126,7 +125,7 @@ app.get('/get-book/:id', async (req, res) => {
         const book = await Book.findById(req.params.id);
         res.json({ status: 'ok', book });
     } catch (err) {
-        res.json({ status: 'error', message: err.message });
+        res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
@@ -142,7 +141,7 @@ app.put('/update-book/:id', async (req, res) => {
         await Book.findByIdAndUpdate(req.params.id, update);
         res.json({ status: 'ok' });
     } catch (err) {
-        res.json({ status: 'error' });
+        res.status(500).json({ status: 'error' });
     }
 });
 
@@ -153,7 +152,7 @@ app.get('/my-collection/:userId', async (req, res) => {
         const user = await User.findById(req.params.userId).populate('purchasedBooks');
         res.json({ status: 'ok', books: user ? user.purchasedBooks : [] });
     } catch (err) {
-        res.json({ status: 'error', message: err.message });
+        res.status(500).json({ status: 'error', message: err.message });
     }
 });
 
@@ -164,13 +163,12 @@ app.post('/contact', async (req, res) => {
         await Message.create(req.body);
         res.json({ status: 'ok' });
     } catch (err) {
-        res.json({ status: 'error' });
+        res.status(500).json({ status: 'error' });
     }
 });
 
 // RAZORPAY PAYMENT
 app.post('/create-order', async (req, res) => {
-    // Razorpay does not need DB, so no connectDB() needed here
     try {
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_Ruf0QnWdRTCqcs",
@@ -252,7 +250,6 @@ app.put('/update-user/:id', async (req, res) => {
     await connectDB();
     const { id } = req.params;
     const { name, email } = req.body;
-    
     try {
         await User.findByIdAndUpdate(id, { name, email });
         res.json({ status: 'ok' });
@@ -261,16 +258,10 @@ app.put('/update-user/:id', async (req, res) => {
     }
 });
 
-// --- 4. EXPORT FOR VERCEL (IMPORTANT) ---
-// This is the most critical part for the migration
-
+// --- 4. EXPORT ---
 if (process.env.NODE_ENV !== 'production') {
-    // Only run this if we are on Localhost
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`Server running on Port ${PORT}`);
-    });
+    app.listen(PORT, () => console.log(`Server running on Port ${PORT}`));
 }
 
-// Export the app so Vercel can run it as a serverless function
 module.exports = app;
