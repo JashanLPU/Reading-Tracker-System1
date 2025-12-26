@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const bcrypt = require('bcryptjs'); // Using bcryptjs as we fixed earlier
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
@@ -14,33 +14,69 @@ const Message = require('./models/Message');
 
 const app = express();
 
-// --- 1. FIXED CORS CONFIGURATION (The Solution) ---
+// --- 1. DYNAMIC CORS CONFIGURATION ---
+// We allow localhost and ANY Vercel deployment (ends with .vercel.app)
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://reading-tracker-system1-2.onrender.com",
+    "https://readingtracker21.netlify.app"
+];
+
 app.use(cors({
-    origin: [
-        "http://localhost:5173",                            // Localhost (for testing)
-        "https://reading-tracker-system1-2.onrender.com",   // The Backend itself
-        "https://readingtracker21.netlify.app"              // <--- YOUR NETLIFY FRONTEND (Crucial!)
-    ],
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        
+        // Allow any Vercel deployment or specific domains
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith(".vercel.app")) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 
 app.use(express.json());
 
-// --- 2. DATABASE CONNECTION ---
-// Uses Env Variable if available, otherwise uses your direct link
+// --- 2. OPTIMIZED DATABASE CONNECTION (For Vercel) ---
 const DB_URI = process.env.MONGO_URL || "mongodb+srv://admin1:admin123@cluster0.0x7h9fz.mongodb.net/?appName=Cluster0";
 
-mongoose.connect(DB_URI)
-    .then(() => console.log("✅ Cloud DB Connected"))
-    .catch(err => console.error("❌ DB Connection Error:", err));
+// Global variable to cache the connection
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(DB_URI).then((mongoose) => {
+      console.log("✅ Cloud DB Connected");
+      return mongoose;
+    });
+  }
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+// Connect immediately (but errors handled inside routes if needed)
+connectDB().catch(console.error);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mySuperSecretKey123';
 
 // --- 3. ROUTES ---
 
+// Health Check (Good for debugging)
+app.get('/', (req, res) => {
+    res.send("Backend is running on Vercel!");
+});
+
 // REGISTER
 app.post('/register', async (req, res) => {
+    await connectDB(); // Ensure DB is connected
     const { name, email, password } = req.body;
     try {
         const existingUser = await User.findOne({ email });
@@ -56,6 +92,7 @@ app.post('/register', async (req, res) => {
 
 // LOGIN
 app.post('/login', async (req, res) => {
+    await connectDB();
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
@@ -75,6 +112,7 @@ app.post('/login', async (req, res) => {
 
 // GET LIBRARY
 app.get('/library', async (req, res) => {
+    await connectDB();
     try {
         const books = await Book.find();
         res.json({ status: 'ok', books });
@@ -85,6 +123,7 @@ app.get('/library', async (req, res) => {
 
 // GET SINGLE BOOK
 app.get('/get-book/:id', async (req, res) => {
+    await connectDB();
     try {
         const book = await Book.findById(req.params.id);
         res.json({ status: 'ok', book });
@@ -95,6 +134,7 @@ app.get('/get-book/:id', async (req, res) => {
 
 // UPDATE BOOK RATING/REVIEW
 app.put('/update-book/:id', async (req, res) => {
+    await connectDB();
     try {
         const { rating, review } = req.body;
         const update = {};
@@ -110,6 +150,7 @@ app.put('/update-book/:id', async (req, res) => {
 
 // GET USER COLLECTION
 app.get('/my-collection/:userId', async (req, res) => {
+    await connectDB();
     try {
         const user = await User.findById(req.params.userId).populate('purchasedBooks');
         res.json({ status: 'ok', books: user ? user.purchasedBooks : [] });
@@ -120,6 +161,7 @@ app.get('/my-collection/:userId', async (req, res) => {
 
 // CONTACT FORM
 app.post('/contact', async (req, res) => {
+    await connectDB();
     try {
         await Message.create(req.body);
         res.json({ status: 'ok' });
@@ -152,6 +194,7 @@ app.post('/create-order', async (req, res) => {
 
 // VERIFY MEMBERSHIP
 app.post('/verify-membership', async (req, res) => {
+    await connectDB();
     const { userId, planType, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     
     const secret = process.env.RAZORPAY_KEY_SECRET || "n0EjlUB5PjAaW8EGoRYGwvhn";
@@ -171,6 +214,7 @@ app.post('/verify-membership', async (req, res) => {
 
 // RECORD PURCHASE (Individual Books)
 app.post('/record-purchase', async (req, res) => {
+    await connectDB();
     const { userId, bookId } = req.body;
     try {
         const user = await User.findById(userId);
@@ -186,6 +230,7 @@ app.post('/record-purchase', async (req, res) => {
 
 // CLAIM PREMIUM BOOK (For Members)
 app.post('/claim-premium', async (req, res) => {
+    await connectDB();
     const { userId, bookId } = req.body;
     try {
         const user = await User.findById(userId);
@@ -202,23 +247,28 @@ app.post('/claim-premium', async (req, res) => {
         res.status(500).json({ status: 'error' });
     }
 });
-// --- ADD THIS TO SERVER/INDEX.JS ---
 
 // UPDATE USER PROFILE
 app.put('/update-user/:id', async (req, res) => {
+    await connectDB();
     const { id } = req.params;
     const { name, email } = req.body;
-    
     try {
-        // Find the user by the ID in the URL and update them
         await User.findByIdAndUpdate(id, { name, email });
         res.json({ status: 'ok' });
     } catch (err) {
         res.json({ status: 'error', message: err.message });
     }
 });
-// --- 4. START SERVER ---
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server running on Port ${PORT}`);
-});
+
+// --- 4. START SERVER (Updated for Vercel) ---
+// This conditional check is vital!
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`Server running on Port ${PORT}`);
+    });
+}
+
+// REQUIRED: Export the app for Vercel
+module.exports = app;
