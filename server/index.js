@@ -8,75 +8,59 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 // Import Models
+// Ensure these files exist in your 'models' folder
 const User = require('./models/User');
 const Book = require('./models/Book');
 const Message = require('./models/Message');
 
 const app = express();
 
-// --- 1. DYNAMIC CORS CONFIGURATION ---
-// We allow localhost and ANY Vercel deployment (ends with .vercel.app)
-const allowedOrigins = [
-    "http://localhost:5173",
-    "https://reading-tracker-system1-2.onrender.com",
-    "https://readingtracker21.netlify.app"
-];
-
+// --- 1. CORS CONFIGURATION ---
+// This allows your frontend to talk to this backend
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        
-        // Allow any Vercel deployment or specific domains
-        if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith(".vercel.app")) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: [
+        "http://localhost:5173",                            // Localhost
+        "https://reading-tracker-client.vercel.app"         // Your future Vercel Frontend
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
 
 app.use(express.json());
 
-// --- 2. OPTIMIZED DATABASE CONNECTION (For Vercel) ---
+// --- 2. DATABASE CONNECTION (Optimized for Vercel) ---
+// If you forget to add the variable in Vercel, it uses the string after '||'
 const DB_URI = process.env.MONGO_URL || "mongodb+srv://admin1:admin123@cluster0.0x7h9fz.mongodb.net/?appName=Cluster0";
 
-// Global variable to cache the connection
 let cached = global.mongoose;
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+    cached = global.mongoose = { conn: null, promise: null };
 }
 
 async function connectDB() {
-  if (cached.conn) return cached.conn;
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(DB_URI).then((mongoose) => {
-      console.log("✅ Cloud DB Connected");
-      return mongoose;
-    });
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
+    if (cached.conn) return cached.conn;
+    if (!cached.promise) {
+        cached.promise = mongoose.connect(DB_URI).then((mongoose) => {
+            console.log("✅ Cloud DB Connected");
+            return mongoose;
+        });
+    }
+    cached.conn = await cached.promise;
+    return cached.conn;
 }
-
-// Connect immediately (but errors handled inside routes if needed)
-connectDB().catch(console.error);
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mySuperSecretKey123';
 
 // --- 3. ROUTES ---
 
-// Health Check (Good for debugging)
+// Health Check
 app.get('/', (req, res) => {
-    res.send("Backend is running on Vercel!");
+    res.json({ message: "Backend is running on Vercel!" });
 });
 
 // REGISTER
 app.post('/register', async (req, res) => {
-    await connectDB(); // Ensure DB is connected
+    await connectDB(); // connectDB must be called inside every route
     const { name, email, password } = req.body;
     try {
         const existingUser = await User.findOne({ email });
@@ -170,8 +154,9 @@ app.post('/contact', async (req, res) => {
     }
 });
 
-// --- RAZORPAY PAYMENT ---
+// RAZORPAY PAYMENT
 app.post('/create-order', async (req, res) => {
+    // Razorpay does not need DB, so no connectDB() needed here
     try {
         const razorpay = new Razorpay({
             key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_Ruf0QnWdRTCqcs",
@@ -212,7 +197,7 @@ app.post('/verify-membership', async (req, res) => {
     }
 });
 
-// RECORD PURCHASE (Individual Books)
+// RECORD PURCHASE
 app.post('/record-purchase', async (req, res) => {
     await connectDB();
     const { userId, bookId } = req.body;
@@ -228,7 +213,7 @@ app.post('/record-purchase', async (req, res) => {
     }
 });
 
-// CLAIM PREMIUM BOOK (For Members)
+// CLAIM PREMIUM BOOK
 app.post('/claim-premium', async (req, res) => {
     await connectDB();
     const { userId, bookId } = req.body;
@@ -253,6 +238,7 @@ app.put('/update-user/:id', async (req, res) => {
     await connectDB();
     const { id } = req.params;
     const { name, email } = req.body;
+    
     try {
         await User.findByIdAndUpdate(id, { name, email });
         res.json({ status: 'ok' });
@@ -261,14 +247,16 @@ app.put('/update-user/:id', async (req, res) => {
     }
 });
 
-// --- 4. START SERVER (Updated for Vercel) ---
-// This conditional check is vital!
+// --- 4. EXPORT FOR VERCEL (IMPORTANT) ---
+// This is the most critical part for the migration
+
 if (process.env.NODE_ENV !== 'production') {
+    // Only run this if we are on Localhost
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
         console.log(`Server running on Port ${PORT}`);
     });
 }
 
-// REQUIRED: Export the app for Vercel
+// Export the app so Vercel can run it as a serverless function
 module.exports = app;
