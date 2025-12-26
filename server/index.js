@@ -17,11 +17,25 @@ const app = express();
 
 // --- 1. CORS CONFIGURATION ---
 // This allows your frontend to talk to this backend
+// --- 1. SMART CORS CONFIGURATION ---
 app.use(cors({
-    origin: [
-        "http://localhost:5173",                            // Localhost
-        "https://reading-tracker-client.vercel.app"         // Your future Vercel Frontend
-    ],
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+
+        // Define allowed domains (Localhost + Your specific production domain)
+        const allowedOrigins = [
+            "http://localhost:5173", 
+            "https://reading-tracker-client.vercel.app"
+        ];
+
+        // LOGIC: Allow if it's in the list OR if it's ANY Vercel deployment URL
+        if (allowedOrigins.includes(origin) || origin.endsWith(".vercel.app")) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));
